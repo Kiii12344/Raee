@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,7 +23,6 @@ body{
   transition: all 1.5s ease;
 }
 
-/* glow transition effect */
 body.unlocked{
   background:#fff3f7;
   box-shadow: inset 0 0 200px rgba(255, 120, 160, 0.25);
@@ -41,7 +39,6 @@ body::before{
 }
 
 /* LOCK SCREEN */
-
 #lockscreen{
   position:fixed;
   inset:0;
@@ -95,12 +92,72 @@ body::before{
   font-size:14px;
 }
 
-/* HEART EXPLOSION */
+/* ENVELOPE OPENING */
+#envelope{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255, 240, 245, 0.95);
+  z-index:9998;
+  flex-direction:column;
+  animation:fadeIn 0.6s ease;
+}
+
+.envelope-box{
+  width:220px;
+  height:160px;
+  background:#ffb3c6;
+  border-radius:12px;
+  position:relative;
+  box-shadow:0 10px 25px rgba(0,0,0,0.15);
+  overflow:hidden;
+}
+
+.envelope-flap{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#ff8fab;
+  clip-path: polygon(0 0, 100% 0, 50% 55%);
+  transform-origin:top;
+  animation:openFlap 1.2s ease forwards;
+}
+
+@keyframes openFlap{
+  0%{transform:rotateX(0deg);}
+  100%{transform:rotateX(180deg);}
+}
+
+.envelope-message{
+  position:absolute;
+  bottom:-100%;
+  width:100%;
+  text-align:center;
+  font-family:'Caveat', cursive;
+  font-size:22px;
+  color:white;
+  animation:slideUp 1.5s ease forwards 0.8s;
+}
+
+@keyframes slideUp{
+  to{bottom:30px;}
+}
+
+@keyframes fadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+/* HEART BURST */
 .heart-burst{
   position:fixed;
   font-size:24px;
   animation:burst 1.2s ease-out forwards;
-  z-index:9998;
+  z-index:9997;
 }
 
 @keyframes burst{
@@ -108,7 +165,7 @@ body::before{
   100%{transform:translate(var(--x), var(--y)) scale(0);opacity:0;}
 }
 
-/* MAIN FLOATING HEARTS */
+/* MAIN */
 .hearts span{
   position:fixed;
   bottom:-50px;
@@ -205,7 +262,6 @@ footer{
   color:#c25b81;
 }
 
-/* MUSIC (hidden) */
 audio{display:none;}
 
 </style>
@@ -224,7 +280,15 @@ audio{display:none;}
   <div id="error"></div>
 </div>
 
-<!-- HEARTS BACKGROUND -->
+<!-- ENVELOPE -->
+<div id="envelope">
+  <div class="envelope-box">
+    <div class="envelope-flap"></div>
+    <div class="envelope-message">For you, Rachel ❤️</div>
+  </div>
+</div>
+
+<!-- HEARTS -->
 <div class="hearts">
   <span style="left:10%">❤</span>
   <span style="left:30%; animation-delay:2s">❤</span>
@@ -243,7 +307,6 @@ audio{display:none;}
 </header>
 
 <div class="container">
-
   <section class="section">
     <h2>Mini Photo Album 📸</h2>
 
@@ -265,16 +328,12 @@ audio{display:none;}
 
     <button onclick="nextSlide()">Next →</button>
   </section>
-
 </div>
 
-<footer>
-  made softly for Rachel ♡
-</footer>
+<footer>made softly for Rachel ♡</footer>
 
 <script>
 
-/* TYPE EFFECT */
 const loadingText = document.getElementById("loadingText");
 
 function typeText(text, speed=70){
@@ -290,33 +349,33 @@ function typeText(text, speed=70){
   type();
 }
 
-/* HEART BURST */
 function heartBurst(){
   for(let i=0;i<25;i++){
     const h = document.createElement("div");
-    h.className = "heart-burst";
-    h.innerHTML = "❤";
-
-    h.style.left = "50%";
-    h.style.top = "50%";
-
-    const x = (Math.random()-0.5)*400 + "px";
-    const y = (Math.random()-0.5)*400 + "px";
-
-    h.style.setProperty("--x", x);
-    h.style.setProperty("--y", y);
-
+    h.className="heart-burst";
+    h.innerHTML="❤";
+    h.style.left="50%";
+    h.style.top="50%";
+    h.style.setProperty("--x",((Math.random()-0.5)*400)+"px");
+    h.style.setProperty("--y",((Math.random()-0.5)*400)+"px");
     document.body.appendChild(h);
-
     setTimeout(()=>h.remove(),1200);
   }
 }
 
-/* PASSWORD */
-function checkPassword(){
-  const pass = document.getElementById('password').value;
+function openEnvelope(cb){
+  const env=document.getElementById("envelope");
+  env.style.display="flex";
+  setTimeout(()=>{
+    env.style.display="none";
+    cb();
+  },1800);
+}
 
-  if(pass.toLowerCase() === "rachel"){
+function checkPassword(){
+  const pass=document.getElementById('password').value;
+
+  if(pass.toLowerCase()==="rachel"){
 
     typeText("loading feelings...");
 
@@ -326,25 +385,24 @@ function checkPassword(){
 
       document.getElementById("bgMusic").play();
 
-      setTimeout(()=>{
-        document.getElementById('lockscreen').style.display = "none";
-      }, 1200);
+      openEnvelope(()=>{
+        document.getElementById('lockscreen').style.display="none";
+      });
 
-    }, 1800);
+    },1800);
 
   } else {
-    document.getElementById('error').innerText = "wrong password :(";
+    document.getElementById('error').innerText="wrong password :(";
     typeText("access denied...");
   }
 }
 
-/* ALBUM */
-let index = 0;
-const album = document.getElementById("album");
+let index=0;
+const album=document.getElementById("album");
 
 function nextSlide(){
-  index = (index + 1) % 2;
-  album.style.transform = `translateX(-${index * 100}%)`;
+  index=(index+1)%2;
+  album.style.transform=`translateX(-${index*100}%)`;
 }
 
 </script>
